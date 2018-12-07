@@ -1,0 +1,13 @@
+.AddComment form {
+    display: grid;
+}
+
+.AddComment form > * {
+    margin-top: 5px;
+}
+
+.AddComment form button {
+    background-color: black;
+    color: white;
+    padding: 12px 32px;
+}

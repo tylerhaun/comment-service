@@ -2,6 +2,8 @@ const sqlite = require("sqlite");
 const Sequelize = require("sequelize");
 const bson = require("bson");
 
+const debug = require("debug")(__filename);
+
 const sequelize = new Sequelize({
     dialect: "sqlite",
     storage: "database.sqlite"
@@ -14,8 +16,15 @@ var model = sequelize.define("comment", {
         defaultValue: () => {var ret = String(new bson.ObjectId());console.log("EWEQEQWEQWEEFDEEV V FEVEEFR", ret);return ret;},
         primaryKey: true,
     },
-    name: {
-        type: Sequelize.BOOLEAN,
+    email: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        validate: {
+            notNull: true
+        }
+    },
+    author: {
+        type: Sequelize.STRING,
         allowNull: false,
         validate: {
             notNull: true
@@ -51,7 +60,8 @@ class CrudController {
     }
 
     read(query) {
-        return this.model.findAll(query);
+        debug("read ", query);
+        return this.model.findAll({where: query});
     }
 
     update() {
