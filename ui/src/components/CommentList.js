@@ -1,11 +1,16 @@
 import React, { Component } from 'react';
+import ReactPaginate from "react-paginate";
 
-import moment from "moment";
+import _ from "lodash";
 import axios from "axios";
+import moment from "moment";
+import mustache from "mustache";
+import queryString from "query-string";
 
 import Comment from "./Comment";
 
 import "./CommentList.css";
+
 
 window.axios = axios;
 window.moment = moment;
@@ -17,26 +22,37 @@ class CommentList extends Component {
     constructor() {
         super()
 
-        this.state = {comments: []};
+        this.state = {
+            comments: [],
+            total: 0,
+            page: 0,
+            pageSize: 10
+        };
 
         this.fetchComments = this.fetchComments.bind(this);
     
     }
 
-    componentDidMount() {
+    //componentDidMount() {
+    //    this.fetchComments()    
+    //}
 
-        this.fetchComments().then(comments => {
-            this.setState(Object.assign(this.state, {comments}));
-        })
-    
-    }
+    fetchComments(state) {
 
-    fetchComments(queryParams) {
+        var queryParams = _.pick(state, ["page", "pageSize"]);
 
-        return axios.get(API_URL + "/comments")
+        var query = queryString.stringify(queryParams)
+        console.log("query", query);
+
+        const fullUrl = mustache.render("{{{baseUrl}}}/comments?{{{queryString}}}", {baseUrl: API_URL, queryString: query});
+        console.log(fullUrl);
+
+        return axios.get(fullUrl)
             .then(response => {
                 console.log("response", response);
-                return response.data.comments;
+                var data = response.data;
+                this.setState(Object.assign(this.state, data));
+                return data;
             })
             .catch(error => {
                 //Toast message
@@ -45,12 +61,23 @@ class CommentList extends Component {
     
     }
 
+    onPageChange(page) {
+        console.log("onPageChange", arguments);
+
+        this.setState(previousState => {
+            var newState = Object.assign({}, previousState, {page: page.selected})
+            this.fetchComments(newState);
+            return newState;
+        })
+    }
+
     render() {
 
         //var comments = Array(10).fill(null).map(() => generateComment())
 
         var comments = this.state.comments;
         console.log("comments", comments);
+        var pageCount = this.state.total / this.state.pageSize;
 
         return (
             <div className="CommentList">
@@ -59,6 +86,19 @@ class CommentList extends Component {
                         <Comment comment={comment} />
                     );
                 })}
+                <div className="react-paginate">
+                    <ReactPaginate
+                        activeLinkClassName="current"
+                        breakLabel={"..."}
+                        initialPage={this.state.page}
+                        marginPagesDisplayed="1"
+                        nextLabel={"Next"}
+                        onPageChange={this.onPageChange.bind(this)}
+                        pageCount={pageCount}
+                        pageRangeDisplayed="5"
+                        previousLabel={"Previous"}
+                    />
+                </div>
             </div>
         );
     }

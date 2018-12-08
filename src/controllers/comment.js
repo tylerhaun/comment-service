@@ -59,9 +59,11 @@ class CrudController {
         return this.model.bulkCreate(data);
     }
 
-    read(query) {
+    read(query, options) {
         debug("read ", query);
-        return this.model.findAll({where: query});
+        const finishedQuery = Object.assign({}, {where: query}, options);
+        console.log("finishedQuery", finishedQuery);
+        return this.model.findAll(finishedQuery);
     }
 
     update() {
@@ -70,6 +72,10 @@ class CrudController {
 
     delete() {
         throw new Error("Not Implemented");
+    }
+
+    count(query) {
+        return this.model.count({where: query})
     }
 
 }

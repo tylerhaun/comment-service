@@ -12,12 +12,15 @@ class AddComment extends Component {
 
         this.state = {formData: {}};
 
-        this.fillFormWithFakeData().bind(this)();
 
         this.handleFormChange = this.handleFormChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.postComment = this.postComment.bind(this);
     
+    }
+
+    componentDidMount() {
+        this.fillFormWithFakeData.bind(this)();
     }
 
     postComment(comment) {
@@ -56,9 +59,8 @@ class AddComment extends Component {
     }
 
     fillFormWithFakeData() {
-        var formFields = ["text", "email", "author"];
 
-        this.setState(Object.assign({}, this.state, {
+        this.setState(Object.assign({}, this.state.formData, {
             text: faker.lorem.sentences(),
             email: faker.internet.email(),
             author: faker.name.findName()

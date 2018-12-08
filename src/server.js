@@ -35,29 +35,12 @@ app.use("/api/v0", require("./routes"));
 
 
 // temporarily forward all unhandled requests to the react server for faster development
-app.use(function(request, response, next) {
-    console.log("request", request);
-    var forwardedServerUrl = "http://localhost:3000" + request.originalUrl;
-    console.log("forwardedServerUrl", forwardedServerUrl);
-    var rpOptions = {
-        method: request.method,
-        uri: forwardedServerUrl,
-        body: request.body,
-        json: true
-    };
-    console.log("rpOptions", rpOptions);
-    rp(rpOptions)
-        .then(body => {
-            console.log("got body", body);
-            response.send(body);
-        })
-    .catch(next);
-})
+app.use(require("./utils/reverse-proxy")("http://localhost:3000"))
 
 
 app.use(function errorHandler(error, request, response, next) {
-    console.error("error", _.pick(error, ["name", "message", "error"]));
-    return response.json(_.pick(error, ["name", "message", "error"]));
+    console.error(error);
+    return response.status(500).json(_.pick(error, ["name", "message", "error"]));
 })
 
 
@@ -73,25 +56,29 @@ process.on("uncaughtException", error => {
 });
 
 // test the endpoint
-const faker = require("faker");
-rp({
-    method: "POST",
-    uri: "http://localhost:8000/api/v0/comments",
-    body: {
-        author: faker.name.findName(),
-        text: faker.lorem.sentences(),
-        email: faker.internet.exampleEmail(),
-        postId: faker.name.title().toLowerCase().replace(/ /g, "_"),
-    },
-    json: true
-})
-    .then(response => {debug("response", response)})
-    .catch(error => {debug("error", error.error)})
-
-rp({
-    method: "GET",
-    uri: "http://localhost:8000/api/v0/comments"
-})
-    .then(response => {debug("response", response)})
-    .catch(error => {debug("error", error.error)})
-
+//const faker = require("faker");
+//var apiUrl = "http://localhost:8000/api/v0";
+//bluebird.resolve().then(() => {
+//    return rp({
+//        method: "POST",
+//        uri: apiUrl + "/comments",
+//        body: {
+//            author: faker.name.findName(),
+//            text: faker.lorem.sentences(),
+//            email: faker.internet.exampleEmail(),
+//            postId: faker.name.title().toLowerCase().replace(/ /g, "_"),
+//        },
+//        json: true
+//    })
+//        .then(response => {debug("response", response)})
+//        .catch(error => {debug("error", error.error)})
+//}).then(() => {
+//
+//    return rp({
+//        method: "GET",
+//        uri: apiUrl + "/comments"
+//    })
+//        .then(response => {debug("response", response)})
+//        .catch(error => {debug("error", error.error)})
+//
+//})
